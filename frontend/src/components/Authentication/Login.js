@@ -14,7 +14,7 @@ import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
 import axios from "axios";
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = "https://mern-chat-app-be.vercel.app";
 
 const Login = () => {
   const [email, setEmail] = useState("");

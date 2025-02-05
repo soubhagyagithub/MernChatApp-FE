@@ -13,7 +13,7 @@ import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
 import { useHistory } from "react-router-dom";
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = "https://mern-chat-app-be.vercel.app";
 const Signup = () => {
   const [name, setName] = useState();
   const [email, setEmail] = useState();

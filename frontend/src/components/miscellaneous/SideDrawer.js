@@ -19,7 +19,7 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { BellIcon, ChevronDownIcon } from "@chakra-ui/icons";
@@ -30,10 +30,12 @@ import axios from "axios";
 import ChatLoading from "../ChatLoading";
 import UserListItem from "../UserAvatar/UserListItem";
 import { getSender } from "../../config/chatLogic";
-import { Effect } from "react-notification-badge";
-import {} from "react-notification-badge";
-import NotificationBadge from "react-notification-badge/lib/components/NotificationBadge";
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+const backendUrl = "https://mern-chat-app-be.vercel.app";
+
+toast.configure();
 
 const SideDrawer = () => {
   const [search, setSearch] = useState("");
@@ -50,47 +52,35 @@ const SideDrawer = () => {
     setNotification,
   } = useChatState();
   const history = useHistory();
-  const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const logoutHandler = () => {
     localStorage.removeItem("userInfo");
     history.push("/");
   };
+
   const handleSearch = async () => {
     if (!search) {
-      toast({
-        title: "Please Enter Something in Search !",
-        status: "warning",
-        duration: 5000,
-        isClosable: true,
+      toast.warning("Please enter something in search!", {
         position: "top-left",
       });
+      return;
     }
     try {
       setLoading(true);
-      const config = {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      };
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
       const { data } = await axios.get(
         `${backendUrl}/api/user?search=${search}`,
         config
       );
-      setLoading(false);
       setSearchResult(data);
     } catch (error) {
-      toast({
-        title: "Error Occured !",
-        description: "Failed to load search result",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "bottom-left",
-      });
+      toast.error("Failed to load search result", { position: "bottom-left" });
+    } finally {
+      setLoading(false);
     }
   };
+
   const accessChat = async (userId) => {
     try {
       setLoadingChat(true);
@@ -107,19 +97,21 @@ const SideDrawer = () => {
       );
       if (!chats.find((c) => c._id === data._id)) setChats([data, ...chats]);
       setSelectedChat(data);
-      setLoadingChat(false);
       onClose();
     } catch (error) {
-      toast({
-        title: "Error fetching the chat",
-        description: error.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "bottom-left",
-      });
+      toast.error("Error fetching the chat", { position: "bottom-left" });
+    } finally {
+      setLoadingChat(false);
     }
   };
+
+  useEffect(() => {
+    if (notification.length > 0) {
+      toast.info(`${notification.length} new message(s)`, {
+        position: "top-right",
+      });
+    }
+  }, [notification]);
 
   return (
     <>
@@ -129,10 +121,10 @@ const SideDrawer = () => {
         alignItems="center"
         bg="white"
         w="100%"
-        p="5px 10px 5px 10px"
+        p="5px 10px"
         borderWidth="5px"
       >
-        <Tooltip label="Search Users to Chat " hasArrow placement="bottom-end">
+        <Tooltip label="Search Users to Chat" hasArrow placement="bottom-end">
           <Button variant="ghost" onClick={onOpen}>
             <FontAwesomeIcon icon={faMagnifyingGlass} />
             <Text display={{ base: "none", md: "flex" }} px="4">
@@ -146,27 +138,29 @@ const SideDrawer = () => {
         <div>
           <Menu>
             <MenuButton p={1}>
-              <NotificationBadge
-                count={notification.length}
-                effect={Effect.SCALE}
-              />
               <BellIcon fontSize="2xl" m={1} />
             </MenuButton>
             <MenuList pl={2}>
-              {!notification.length && "No New Messages"}
-              {notification.map((notif) => (
-                <MenuItem
-                  key={notif._id}
-                  onClick={() => {
-                    setSelectedChat(notif.chat);
-                    setNotification(notification.filter((n) => n !== notif));
-                  }}
-                >
-                  {notif.chat.isGroupChat
-                    ? `New Message in ${notif.chat.chatName}`
-                    : `New Message from ${getSender(user, notif.chat.users)}`}
-                </MenuItem>
-              ))}
+              {!notification.length
+                ? "No New Messages"
+                : notification.map((notif) => (
+                    <MenuItem
+                      key={notif._id}
+                      onClick={() => {
+                        setSelectedChat(notif.chat);
+                        setNotification(
+                          notification.filter((n) => n !== notif)
+                        );
+                      }}
+                    >
+                      {notif.chat.isGroupChat
+                        ? `New Message in ${notif.chat.chatName}`
+                        : `New Message from ${getSender(
+                            user,
+                            notif.chat.users
+                          )}`}
+                    </MenuItem>
+                  ))}
             </MenuList>
             <Menu>
               <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>

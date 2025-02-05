@@ -18,7 +18,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import UserListItem from "../UserAvatar/UserListItem";
 import UserBadgeItem from "../UserAvatar/UserBadgeItem";
-const BACKENDURL = process.env.REACT_APP_BACKEND_URL;
+const BACKENDURL = "https://mern-chat-app-be.vercel.app";
 
 const GroupChatModal = ({ children }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
