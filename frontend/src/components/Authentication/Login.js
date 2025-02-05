@@ -46,7 +46,7 @@ const Login = () => {
         },
       };
       const response = await axios.post(
-        `${backendUrl}/api/user/login`,
+        "https://mern-chat-app-be.vercel.app/api/user/login",
         { email, password },
         config
       );
